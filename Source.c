@@ -4,11 +4,11 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "header.h"
 
-
-
+/*
 void Clean_Ressources(SDL_Window* w, SDL_Renderer* r, SDL_Texture* t) {  // Instead of Destroying manually, this function do it for us 
-
+    
     if (t != NULL) {
         SDL_DestroyTexture(t);
     }
@@ -21,7 +21,7 @@ void Clean_Ressources(SDL_Window* w, SDL_Renderer* r, SDL_Texture* t) {  // Inst
     SDL_Quit();
 }
 
-int main(int argc, char **argv) {
+int run_sdl_image(const char* filepath) {
     
     SDL_Window* window = NULL;
     SDL_Renderer* renderer = NULL;
@@ -97,9 +97,7 @@ int main(int argc, char **argv) {
     if (SDL_MUSTLOCK(picture)) SDL_UnlockSurface(picture);
 
     texture = SDL_CreateTextureFromSurface(renderer, picture);
-    
-    SDL_FreeSurface(picture); // We free the Surface "picture" now, so in case of an error later, we don't have to do it 
-
+    SDL_FreeSurface(picture);
     if (!texture) {
         SDL_Log("Erreur création texture : %s\n", SDL_GetError());
         Clean_Ressources(window, renderer, texture);
@@ -135,12 +133,18 @@ int main(int argc, char **argv) {
 
             case SDL_QUIT:
                 running = 1;
+                if (SDL_SaveBMP(picture, "Image.bmp") != 0) {
+                    SDL_Log("Erreur sauvegarde image : %s\n", SDL_GetError());
+                }
                 break;
 
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
 
                     running = 1;
+                    if (SDL_SaveBMP(picture, "Image.bmp") != 0) {
+                        SDL_Log("Erreur sauvegarde image : %s\n", SDL_GetError());
+                    }
                     break;
 
                 }
@@ -171,5 +175,82 @@ int main(int argc, char **argv) {
 
     }
     Clean_Ressources(window, renderer, texture);
+    return 0;
+}*/
+
+void Clean_Ressources(SDL_Surface* picture) {
+    if (picture) SDL_FreeSurface(picture);
+}
+
+// Main Function : Convert and save picture
+int run_sdl_image(const char* filepath) {
+    SDL_Surface* picture = SDL_LoadBMP(filepath);
+    if (!picture) {
+        SDL_Log("Erreur chargement image: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    if (SDL_MUSTLOCK(picture)) SDL_LockSurface(picture);
+
+    int w = picture->w;
+    int h = picture->h;
+
+    for (int i = 0; i < h; i++) {
+        Uint8* row = (Uint8*)picture->pixels + i * picture->pitch;
+        Uint32* pixels = (Uint32*)row;
+        for (int j = 0; j < w; j++) {
+            Uint32 pixel = pixels[j];
+            Uint8 r, g, b;
+            SDL_GetRGB(pixel, picture->format, &r, &g, &b);
+            Uint8 gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            pixels[j] = SDL_MapRGB(picture->format, gray, gray, gray);
+        }
+    }
+
+    if (SDL_MUSTLOCK(picture)) SDL_UnlockSurface(picture);
+
+    // Save Image in black and white
+    if (SDL_SaveBMP(picture, "Image.bmp") != 0) {
+        SDL_Log("Erreur sauvegarde image: %s\n", SDL_GetError());
+        Clean_Ressources(picture);
+        return 1;
+    }
+
+    Clean_Ressources(picture);
+    return 0;
+}
+
+// Function to rotate image 
+int rotate_image_90(const char* filepath, int clockwise) {
+    SDL_Surface* picture = SDL_LoadBMP(filepath);
+    if (!picture) return 1;
+
+    int w = picture->w;
+    int h = picture->h;
+
+    
+    SDL_Surface* rotated = SDL_CreateRGBSurfaceWithFormat(0, h, w, 32, picture->format->format);
+    if (!rotated) {
+        SDL_FreeSurface(picture);
+        return 1;
+    }
+
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            Uint32 pixel = ((Uint32*)picture->pixels)[y * w + x];
+            if (clockwise) {
+                ((Uint32*)rotated->pixels)[x * h + (h - 1 - y)] = pixel;
+            }
+            else {
+                ((Uint32*)rotated->pixels)[(w - 1 - x) * h + y] = pixel;
+            }
+        }
+    }
+
+    SDL_SaveBMP(rotated, filepath);
+
+    SDL_FreeSurface(rotated);
+    SDL_FreeSurface(picture);
+
     return 0;
 }
