@@ -223,34 +223,44 @@ int run_sdl_image(const char* filepath) {
 // Function to rotate image 
 int rotate_image_90(const char* filepath, int clockwise) {
     SDL_Surface* picture = SDL_LoadBMP(filepath);
-    if (!picture) return 1;
+    if (!picture) {
+        fprintf(stderr, "Erreur chargement image : %s\n", SDL_GetError());
+        return 1;
+    }
 
     int w = picture->w;
     int h = picture->h;
 
-    
     SDL_Surface* rotated = SDL_CreateRGBSurfaceWithFormat(0, h, w, 32, picture->format->format);
     if (!rotated) {
+        fprintf(stderr, "Erreur création surface : %s\n", SDL_GetError());
         SDL_FreeSurface(picture);
         return 1;
     }
 
+    Uint32* src = (Uint32*)picture->pixels;
+    Uint32* dst = (Uint32*)rotated->pixels;
+
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
-            Uint32 pixel = ((Uint32*)picture->pixels)[y * w + x];
+            Uint32 pixel = src[y * w + x];
+
             if (clockwise) {
-                ((Uint32*)rotated->pixels)[x * h + (h - 1 - y)] = pixel;
+                // Rotation vers la droite
+                dst[x * rotated->w + (rotated->w - y - 1)] = pixel;
             }
             else {
-                ((Uint32*)rotated->pixels)[(w - 1 - x) * h + y] = pixel;
+                // Rotation vers la gauche
+                dst[(rotated->h - x - 1) * rotated->w + y] = pixel;
             }
         }
     }
 
-    SDL_SaveBMP(rotated, filepath);
+    if (SDL_SaveBMP(rotated, filepath) != 0) {
+        fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+    }
 
     SDL_FreeSurface(rotated);
     SDL_FreeSurface(picture);
-
     return 0;
 }

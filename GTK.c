@@ -26,15 +26,49 @@ static void on_button_clicked(GtkWidget* button, gpointer user_data) {
 
 static void rotate_right(GtkWidget* button, gpointer user_data) {
     struct Widgets* widgets = user_data;
-    rotate_image_90("Image.bmp", 1);
-    gtk_image_set_from_file(widgets->image_widget, "Image.bmp");
+    if (!widgets || !widgets->image_widget) return;
+
+    GError* error = NULL;
+    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file("Image.bmp", &error);
+    if (!pixbuf) {
+        g_print("Erreur lors du chargement de l'image : %s\n", error->message);
+        g_error_free(error);
+        return;
+    }
+
+    GdkPixbuf* rotated = gdk_pixbuf_rotate_simple(pixbuf, GDK_PIXBUF_ROTATE_CLOCKWISE);
+    g_object_unref(pixbuf);
+
+
+    gdk_pixbuf_save(rotated, "Image.bmp", "bmp", &error, NULL);
+    gtk_image_set_from_pixbuf(widgets->image_widget, rotated);
+    g_object_unref(rotated);
+
+    g_print("Rotation à droite effectuée.\n");
 }
 
 
 static void rotate_left(GtkWidget* button, gpointer user_data) {
     struct Widgets* widgets = user_data;
-    rotate_image_90("Image.bmp", 0);
-    gtk_image_set_from_file(widgets->image_widget, "Image.bmp");
+    if (!widgets || !widgets->image_widget) return;
+
+    GError* error = NULL;
+    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file("Image.bmp", &error);
+    if (!pixbuf) {
+        g_print("Erreur lors du chargement de l'image : %s\n", error->message);
+        g_error_free(error);
+        return;
+    }
+
+ 
+    GdkPixbuf* rotated = gdk_pixbuf_rotate_simple(pixbuf, GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE);
+    g_object_unref(pixbuf);
+
+    gdk_pixbuf_save(rotated, "Image.bmp", "bmp", &error, NULL);
+    gtk_image_set_from_pixbuf(widgets->image_widget, rotated);
+    g_object_unref(rotated);
+
+    g_print("Rotation à gauche effectuée.\n");
 }
 
 static void activate(GtkApplication* app, gpointer user_data) {
@@ -95,10 +129,15 @@ static void activate(GtkApplication* app, gpointer user_data) {
 
     // Box for rtotation button
     GtkWidget* rotate_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_halign(rotate_box, GTK_ALIGN_CENTER);
+    gtk_box_set_homogeneous(GTK_BOX(rotate_box), TRUE);
+    gtk_widget_set_halign(rotate_box, GTK_ALIGN_FILL);
     gtk_box_append(GTK_BOX(main_box), rotate_box);
 
-    GtkWidget* left_button = gtk_button_new_with_label("L");
-    GtkWidget* right_button = gtk_button_new_with_label("R");
+    GtkWidget* left_button = gtk_button_new_with_label("Rotate Left");
+
+    GtkWidget* right_button = gtk_button_new_with_label("Rotate Right");
+    
     gtk_box_append(GTK_BOX(rotate_box), left_button);
     gtk_box_append(GTK_BOX(rotate_box), right_button);
 
@@ -112,7 +151,7 @@ static void activate(GtkApplication* app, gpointer user_data) {
     g_signal_connect(left_button, "clicked", G_CALLBACK(rotate_left), widgets);
     g_signal_connect(right_button, "clicked", G_CALLBACK(rotate_right), widgets);
 
-    gtk_widget_show(window);
+    gtk_widget_set_visible(window, TRUE);
 }
 
 int main(int argc, char** argv) {
