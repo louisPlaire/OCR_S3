@@ -1,9 +1,15 @@
 ﻿#include <gtk/gtk.h>
 #include "header.h"
+#include <math.h>
+#include <cairo.h>
+
+
 
 struct Widgets {
     GtkTextView* text_view;
     GtkImage* image_widget;
+    GdkPixbuf* original_pixbuf;
+    double current_angle;
 };
 
 static void on_button_clicked(GtkWidget* button, gpointer user_data) {
@@ -13,62 +19,108 @@ static void on_button_clicked(GtkWidget* button, gpointer user_data) {
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(buffer, &start, &end);
     char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    if (g_file_test("Image.bmp", G_FILE_TEST_EXISTS)) {
+        if (remove("Image.bmp") != 0) {
+            g_print("Impossible de supprimer l'ancien Image.bmp\n");
+        }
+    }
     g_print("Texte entrer : %s\n", text);
-   
     int i = run_sdl_image(text);
     if (i == 1)
         g_free(text);
     else
+   
         gtk_image_set_from_file(widgets->image_widget, "Image.bmp");
+        if (widgets->original_pixbuf) {
+            g_object_unref(widgets->original_pixbuf);
+            widgets->original_pixbuf = NULL;
+        }
+        
+        widgets->current_angle = 0.0;
         g_free(text);
         
 }
 
 static void rotate_right(GtkWidget* button, gpointer user_data) {
-    struct Widgets* widgets = user_data;
+    struct Widgets* widgets = (struct Widgets*)user_data;
     if (!widgets || !widgets->image_widget) return;
 
-    GError* error = NULL;
-    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file("Image.bmp", &error);
-    if (!pixbuf) {
-        g_print("Erreur lors du chargement de l'image : %s\n", error->message);
-        g_error_free(error);
-        return;
+    if (!widgets->original_pixbuf) {
+        GError* error = NULL;
+        widgets->original_pixbuf = gdk_pixbuf_new_from_file("Image.bmp", &error);
+        if (!widgets->original_pixbuf) {
+            g_print("Erreur lors du chargement de l'image : %s\n", error->message);
+            g_error_free(error);
+            return;
+        }
+        widgets->current_angle = 0.0;
     }
 
-    GdkPixbuf* rotated = gdk_pixbuf_rotate_simple(pixbuf, GDK_PIXBUF_ROTATE_CLOCKWISE);
-    g_object_unref(pixbuf);
+    widgets->current_angle += 10.0;
+    double angle_rad = widgets->current_angle * G_PI / 180.0;
 
+    int width = gdk_pixbuf_get_width(widgets->original_pixbuf);
+    int height = gdk_pixbuf_get_height(widgets->original_pixbuf);
+    int size = (int)ceil(sqrt(width * width + height * height));
 
-    gdk_pixbuf_save(rotated, "Image.bmp", "bmp", &error, NULL);
-    gtk_image_set_from_pixbuf(widgets->image_widget, rotated);
-    g_object_unref(rotated);
+    cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
+    cairo_t* cr = cairo_create(surface);
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba(cr, 0, 0, 0, 0);
+    cairo_paint(cr);
+    cairo_translate(cr, size / 2.0, size / 2.0);
+    cairo_rotate(cr, angle_rad);
+    cairo_translate(cr, -width / 2.0, -height / 2.0);
 
-    g_print("Rotation à droite effectuée.\n");
+    gdk_cairo_set_source_pixbuf(cr, widgets->original_pixbuf, 0, 0);
+    cairo_paint(cr);
+
+    GdkPixbuf* rotated = gdk_pixbuf_get_from_surface(surface, 0, 0, size, size);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(widgets->image_widget), rotated);
+    cairo_destroy(cr);
+    cairo_surface_destroy(surface);
+
+    g_print("Rotation cumulée : %.1f° (surface %dx%d)\n", widgets->current_angle, size, size);
 }
 
-
 static void rotate_left(GtkWidget* button, gpointer user_data) {
-    struct Widgets* widgets = user_data;
+    struct Widgets* widgets = (struct Widgets*)user_data;
     if (!widgets || !widgets->image_widget) return;
 
-    GError* error = NULL;
-    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file("Image.bmp", &error);
-    if (!pixbuf) {
-        g_print("Erreur lors du chargement de l'image : %s\n", error->message);
-        g_error_free(error);
-        return;
+    if (!widgets->original_pixbuf) {
+        GError* error = NULL;
+        widgets->original_pixbuf = gdk_pixbuf_new_from_file("Image.bmp", &error);
+        if (!widgets->original_pixbuf) {
+            g_print("Erreur lors du chargement de l'image : %s\n", error->message);
+            g_error_free(error);
+            return;
+        }
+        widgets->current_angle = 0.0;
     }
+    widgets->current_angle -= 10.0;
+    double angle_rad = widgets->current_angle * G_PI / 180.0;
+    int width = gdk_pixbuf_get_width(widgets->original_pixbuf);
+    int height = gdk_pixbuf_get_height(widgets->original_pixbuf);
+    int size = (int)ceil(sqrt(width * width + height * height));
 
- 
-    GdkPixbuf* rotated = gdk_pixbuf_rotate_simple(pixbuf, GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE);
-    g_object_unref(pixbuf);
+    cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
+    cairo_t* cr = cairo_create(surface);
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba(cr, 0, 0, 0, 0);
+    cairo_paint(cr);
+    cairo_translate(cr, size / 2.0, size / 2.0);
+    cairo_rotate(cr, angle_rad);
+    cairo_translate(cr, -width / 2.0, -height / 2.0);
 
-    gdk_pixbuf_save(rotated, "Image.bmp", "bmp", &error, NULL);
-    gtk_image_set_from_pixbuf(widgets->image_widget, rotated);
-    g_object_unref(rotated);
+    gdk_cairo_set_source_pixbuf(cr, widgets->original_pixbuf, 0, 0);
+    cairo_paint(cr);
 
-    g_print("Rotation à gauche effectuée.\n");
+    GdkPixbuf* rotated = gdk_pixbuf_get_from_surface(surface, 0, 0, size, size);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(widgets->image_widget), rotated);
+    cairo_destroy(cr);
+    cairo_surface_destroy(surface);
+
+    g_print("Rotation cumulée : %.1f° (surface %dx%d)\n", widgets->current_angle, size, size);
 }
 
 static void activate(GtkApplication* app, gpointer user_data) {
