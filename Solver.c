@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < strlen(argv[1]); i++) {
 
 		argv[1][i] = toupper(argv[1][i]);
-		printf("%c", toupper(argv[1][i]));
+
 	}
 
 	if (Check_Vertically(argv[1], Mat) == 0) {
