@@ -9,5 +9,6 @@ void Close_All(FILE* file, char** Matrice);
 int Check_Vertically(char* Word, char** Matrice);
 
 int Check_Horizontally(char* Word, char** Matrice);
-
+int Check_Diagonally(char* Word, char** Matrice);
+int Check_Diagonnaly2(char* Word, char** Mat);
 #endif
