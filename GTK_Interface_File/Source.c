@@ -434,7 +434,7 @@ void image_split_x(SDL_Surface* surface)
     }
 }
 
-void image_split_x(SDL_Surface* surface) 
+void image_split_y(SDL_Surface* surface) 
 {
     int w = surface->w;
     int h = surface->h;
