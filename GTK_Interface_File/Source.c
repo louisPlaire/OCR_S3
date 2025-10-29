@@ -434,6 +434,69 @@ void image_split_x(SDL_Surface* surface)
     }
 }
 
+void image_split_x(SDL_Surface* surface) 
+{
+    int w = surface->w;
+    int h = surface->h;
+
+
+    SDL_Surface* top = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, surface->format->format);
+    SDL_Surface* bottom = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, surface->format->format);
+    
+    int first_black_encountered = 0;
+    int white_encountered_again = 0;
+    int white_rows = 0;
+
+    int y = 0;
+    while (white_encountered_again == 0)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            Uint32 pixel = get_pixel(surface, x, y);
+
+            if (!is_white(pixel))
+            {
+                first_black_encountered = 1;
+            }
+            set_pixel(top, x, y, pixel);
+        }
+
+        if (first_black_encountered)
+        {
+            white_rows += 1;
+            for (int x = 0; x < w; x++)
+            {
+                if (!is_white(get_pixel(surface, x, y)))
+                {
+                    white_rows = 0;
+                }
+            }
+            if (white_rows == 10) // 10 is number of white rows to encounter to split image
+            {
+                white_encountered_again = 1;
+            }
+        }
+
+        x++;
+    }
+
+    while (y < h)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            Uint32 pixel = get_pixel(surface, x, y);
+            set_pixel(bottom, x, y, pixel);
+        }
+        x++;
+    }
+
+    if (SDL_SaveBMP(top, "top.bmp") != 0) {
+        fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+    }
+    if (SDL_SaveBMP(bottom, "bottom.bmp") != 0) {
+        fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+    }
+}
 
 
 typedef struct {
