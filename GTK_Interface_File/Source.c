@@ -442,7 +442,7 @@ void image_split_x(SDL_Surface* surface)
     }*/
 
     
-    if (!is_left_list)
+    if (is_left_list == 1)
     {
         if (SDL_SaveBMP(right, "grid.bmp") != 0) {
             fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
