@@ -359,7 +359,7 @@ void set_pixel(SDL_Surface* img, unsigned x, unsigned y, Uint32 pixel)
 
 
 
-void image_split_x(SDL_Surface* surface) 
+void image_split_x(SDL_Surface* surface)
 {
     int w = surface->w;
     int h = surface->h;
@@ -367,7 +367,7 @@ void image_split_x(SDL_Surface* surface)
 
     SDL_Surface* left = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, surface->format->format);
     SDL_Surface* right = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, surface->format->format);
-    
+
     int first_black_encountered = 0;
     int white_encountered_again = 0;
     int is_column_white = 0;
@@ -405,6 +405,21 @@ void image_split_x(SDL_Surface* surface)
         x++;
     }
 
+    int is_left_list = 0;
+    if (x < w / 2)
+    {
+        if (SDL_SaveBMP(left, "list.bmp") != 0) {
+            fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+        }
+        int is_left_list = 1;
+    }
+    else
+    {
+        if (SDL_SaveBMP(left, "grid.bmp") != 0) {
+            fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+        }
+    }
+
     while (x < w)
     {
         for (int y = 0; y < h; y++)
@@ -426,14 +441,20 @@ void image_split_x(SDL_Surface* surface)
         fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
     }*/
 
-    if (SDL_SaveBMP(left, "left.bmp") != 0) {
-        fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+    
+    if (!is_left_list)
+    {
+        if (SDL_SaveBMP(right, "grid.bmp") != 0) {
+            fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+        }
     }
-    if (SDL_SaveBMP(right, "right.bmp") != 0) {
-        fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+    else
+    {
+        if (SDL_SaveBMP(right, "list.bmp") != 0) {
+            fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
+        }
     }
 }
-
 void image_split_y(SDL_Surface* surface) 
 {
     int w = surface->w;
