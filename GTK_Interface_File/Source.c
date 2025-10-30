@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "header.h"
+#include "Header.h"
 
 /*
 void Clean_Ressources(SDL_Window* w, SDL_Renderer* r, SDL_Texture* t) {  // Instead of Destroying manually, this function do it for us 
