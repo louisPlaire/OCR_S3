@@ -100,7 +100,7 @@ int Check_Vertically(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					CF = j;
 					LF = i;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -150,7 +150,7 @@ int Check_Horizontally(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					CF = j;
 					LF = i;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -187,7 +187,7 @@ int Check_Horizontally(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					CF = j;
 					LF = i;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -228,7 +228,7 @@ int Check_Diagonally(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					CF = j_tmp;
 					LF = i_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -263,7 +263,7 @@ int Check_Diagonally(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					CF = j_tmp;
 					LF = i_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -300,7 +300,7 @@ int Check_Diagonally(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					LF = i_tmp;
 					CF = j_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 			}
@@ -334,7 +334,7 @@ int Check_Diagonally(char* Word, char** Matrice) {
 				if (TailleWord == IntoWord) {
 					LF = i_tmp;
 					CF = j_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 			}
@@ -377,7 +377,7 @@ int Check_Diagonnaly2(char* Word, char** Mat) {
 				if (TailleWord == IntoWord) {
 					CF = j_tmp;
 					LF = i_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -412,7 +412,7 @@ int Check_Diagonnaly2(char* Word, char** Mat) {
 				if (TailleWord == IntoWord) {
 					CF = j_tmp;
 					LF = i_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 
@@ -445,7 +445,7 @@ int Check_Diagonnaly2(char* Word, char** Mat) {
 				if (TailleWord == IntoWord) {
 					CF = j_tmp;
 					LF = i_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 			}
@@ -476,7 +476,7 @@ int Check_Diagonnaly2(char* Word, char** Mat) {
 				if (TailleWord == IntoWord) {
 					CF = j_tmp;
 					LF = i_tmp;
-					printf("%s trouver : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
+					printf("%s trouvé : (%d;%d) (%d;%d)\n", Word, LD + 1, CD + 1, LF + 1, CF + 1);
 					return 0;
 				}
 			}
@@ -535,7 +535,7 @@ int main(int argc, char* argv[]) {
 		
 		if (colonnes != TailleLigne) {
 			Close_All(fichier, NULL);
-			errx(EXIT_FAILURE, "Pas le m�me nombre de char dans chaque lignes");
+			errx(EXIT_FAILURE, "Pas le m�me nombre de char dans chaque lignes");
 		}
 
 	}
@@ -591,7 +591,7 @@ int main(int argc, char* argv[]) {
 
 					}
 					else {
-						printf("%s non trouver\n",argv[argument]);
+						printf("%s non trouvé\n",argv[argument]);
 					}
 				}
 			}
