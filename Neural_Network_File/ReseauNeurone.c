@@ -163,7 +163,7 @@ int Trainer() {
         
     }
     double data_entree[4][2] = { {0,0}, { 1,0 }, { 0,1 }, { 1,1 } };
-    double data_sortie[4][1] = { {0}, {1}, {1}, {0} };
+    double data_sortie[4][1] = { {1}, {0}, {0}, {1} };
 
     for (int i = 0; i < 100000; i++) {
 

@@ -1,6 +1,12 @@
-﻿#include <gtk/gtk.h>
+﻿
+#include <SDL.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <gtk/gtk.h>
 #include "header.h"
 #include <math.h>
+
 #include <cairo.h>
 
 
@@ -123,6 +129,43 @@ static void rotate_left(GtkWidget* button, gpointer user_data) {
     g_print("Rotation cumulée : %.1f° (surface %dx%d)\n", widgets->current_angle, size, size);
 }
 
+static void treatement(GtkWidget* button, gpointer user_data)
+{
+
+    struct Widgets* widgets = (struct Widgets*)user_data;
+
+    const char* filename = "Image.bmp";
+    if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
+        g_print("Image non trouvée. Veuillez d'abord cliquer sur 'Executer'.\n");
+        return;
+    }
+
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        g_print("Erreur SDL_Init: %s\n", SDL_GetError());
+        return;
+    }
+
+    SDL_Surface* surface = SDL_LoadBMP(filename);
+    if (!surface) {
+        g_print("Impossible de charger %s: %s\n", filename, SDL_GetError());
+        SDL_Quit();
+        return;
+    }
+
+    image_split_x(surface);
+    SDL_FreeSurface(surface);
+    char* outputDir = "letters";
+    char* outputDir1 = "splitletters";
+
+    extractLettersToFolder("grid.bmp", outputDir);
+    extractLettersToFolder("list.bmp", outputDir1);
+
+    g_print("Traitement terminé : images séparées et lettres extraites.\n");
+
+    SDL_Quit();
+
+}
+
 static void activate(GtkApplication* app, gpointer user_data) {
     GtkWidget* window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "Solver OCR");
@@ -187,10 +230,11 @@ static void activate(GtkApplication* app, gpointer user_data) {
     gtk_box_append(GTK_BOX(main_box), rotate_box);
 
     GtkWidget* left_button = gtk_button_new_with_label("Rotate Left");
-
+    GtkWidget* Middle_button = gtk_button_new_with_label("Apply treatment");
     GtkWidget* right_button = gtk_button_new_with_label("Rotate Right");
     
     gtk_box_append(GTK_BOX(rotate_box), left_button);
+    gtk_box_append(GTK_BOX(rotate_box), Middle_button);
     gtk_box_append(GTK_BOX(rotate_box), right_button);
 
     // Structure Widgets for callbacks
@@ -201,6 +245,7 @@ static void activate(GtkApplication* app, gpointer user_data) {
     // Connected callbacks
     g_signal_connect(green_button, "clicked", G_CALLBACK(on_button_clicked), widgets);
     g_signal_connect(left_button, "clicked", G_CALLBACK(rotate_left), widgets);
+    g_signal_connect(Middle_button, "clicked", G_CALLBACK(treatement), widgets);
     g_signal_connect(right_button, "clicked", G_CALLBACK(rotate_right), widgets);
 
     gtk_widget_set_visible(window, TRUE);
@@ -208,7 +253,7 @@ static void activate(GtkApplication* app, gpointer user_data) {
 
 int main(int argc, char** argv) {
  
-    GtkApplication* app = gtk_application_new("com.LouisLeBg", G_APPLICATION_DEFAULT_FLAGS);
+    GtkApplication* app = gtk_application_new("com.GtkTreatment", G_APPLICATION_DEFAULT_FLAGS);
     
     int status;
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);

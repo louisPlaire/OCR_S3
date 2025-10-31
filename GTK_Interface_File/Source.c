@@ -8,6 +8,15 @@
 #include <math.h>
 #include "Header.h"
 
+#if defined(_WIN32)
+#include <direct.h> // pour _mkdir
+#define MKDIR(dir) _mkdir(dir)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define MKDIR(dir) mkdir(dir, 0777)
+#endif
+
 /*
 void Clean_Ressources(SDL_Window* w, SDL_Renderer* r, SDL_Texture* t) {  // Instead of Destroying manually, this function do it for us 
     
@@ -184,6 +193,8 @@ void Clean_Ressources(SDL_Surface* picture) {
     if (picture) SDL_FreeSurface(picture);
 }
 
+
+
 // Main Function : Convert and save picture
 int run_sdl_image(const char* filepath) {
     SDL_Surface* picture = SDL_LoadBMP(filepath);
@@ -196,7 +207,7 @@ int run_sdl_image(const char* filepath) {
 
     int w = picture->w;
     int h = picture->h;
-
+    const Uint8 threshold = 128;
     for (int i = 0; i < h; i++) {
         Uint8* row = (Uint8*)picture->pixels + i * picture->pitch;
         Uint32* pixels = (Uint32*)row;
@@ -205,7 +216,8 @@ int run_sdl_image(const char* filepath) {
             Uint8 r, g, b;
             SDL_GetRGB(pixel, picture->format, &r, &g, &b);
             Uint8 gray = 0.299 * r + 0.587 * g + 0.114 * b;
-            pixels[j] = SDL_MapRGB(picture->format, gray, gray, gray);
+            Uint8 bin = (gray > threshold) ? 255 : 0;
+            pixels[j] = SDL_MapRGB(picture->format, bin, bin, bin);
         }
     }
 
@@ -363,7 +375,7 @@ void image_split_x(SDL_Surface* surface)
 {
     int w = surface->w;
     int h = surface->h;
-
+    static int count = 0;
 
     SDL_Surface* left = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, surface->format->format);
     SDL_Surface* right = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, surface->format->format);
@@ -373,89 +385,55 @@ void image_split_x(SDL_Surface* surface)
     int is_column_white = 0;
 
     int x = 0;
-    while (white_encountered_again == 0)
-    {
-        for (int y = 0; y < h; y++)
-        {
+    int splitX = 0;
+    while (white_encountered_again == 0) {
+        for (int y = 0; y < h; y++) {
             Uint32 pixel = get_pixel(surface, x, y);
-
-            if (!is_white(pixel))
-            {
-                first_black_encountered = 1;
-            }
+            if (!is_white(pixel)) first_black_encountered = 1;
             set_pixel(left, x, y, pixel);
         }
-
-        if (first_black_encountered)
-        {
+        if (first_black_encountered) {
             is_column_white += 1;
-            for (int y = 0; y < h; y++)
-            {
-                if (!is_white(get_pixel(surface, x, y)))
-                {
-                    is_column_white = 0;
-                }
+            for (int y = 0; y < h; y++) {
+                if (!is_white(get_pixel(surface, x, y))) is_column_white = 0;
             }
-            if (is_column_white == 10) // 10 is number of white columns to encounter to split image
-            {
+            if (is_column_white == 10) {
                 white_encountered_again = 1;
+                splitX = x - 9; 
             }
         }
-
         x++;
     }
 
     int is_left_list = 0;
-    if (x < w / 2)
-    {
-        if (SDL_SaveBMP(left, "list.bmp") != 0) {
+    if (splitX < w / 2) {
+        if (SDL_SaveBMP(left, "list.bmp") != 0)
             fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
-        }
-        int is_left_list = 1;
+        is_left_list = 1;
     }
-    else
-    {
-        if (SDL_SaveBMP(left, "grid.bmp") != 0) {
+    else {
+        if (SDL_SaveBMP(left, "grid.bmp") != 0)
             fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
-        }
     }
 
-    while (x < w)
-    {
-        for (int y = 0; y < h; y++)
-        {
+    while (x < w) {
+        for (int y = 0; y < h; y++) {
             Uint32 pixel = get_pixel(surface, x, y);
-            set_pixel(right, x, y, pixel);
+            set_pixel(right, x - splitX, y, pixel); 
         }
         x++;
     }
 
-
-    /*
-    // saving the surface
-    char* buffer[255];
-    char* c = itoa(*count, buffer, 10);
-    char* ptr = strcat(c, "_is_img.bmp");
-
-    if (SDL_SaveBMP(left, c) != 0) {
-        fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
-    }*/
-
-    
-    if (is_left_list == 1)
-    {
-        if (SDL_SaveBMP(right, "grid.bmp") != 0) {
+    if (is_left_list) {
+        if (SDL_SaveBMP(right, "grid.bmp") != 0)
             fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
-        }
     }
-    else
-    {
-        if (SDL_SaveBMP(right, "list.bmp") != 0) {
+    else {
+        if (SDL_SaveBMP(right, "list.bmp") != 0)
             fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
-        }
     }
 }
-void image_split_y(SDL_Surface* surface) 
+/*void image_split_y(SDL_Surface* surface)
 {
     int w = surface->w;
     int h = surface->h;
@@ -517,7 +495,7 @@ void image_split_y(SDL_Surface* surface)
     if (SDL_SaveBMP(bottom, "bottom.bmp") != 0) {
         fprintf(stderr, "Erreur sauvegarde : %s\n", SDL_GetError());
     }
-}
+}*/
 
 
 typedef struct {
@@ -528,9 +506,7 @@ typedef struct {
     int minX, maxX, minY, maxY;
 } BoundingBox;
 
-void floodFillIterative(Uint32* pixels, Uint8* visited, int w, int h,
-    int startX, int startY, SDL_PixelFormat* fmt,
-    Uint8 threshold, BoundingBox* box) {
+void floodFillIterative(Uint32* pixels, Uint8* visited, int w, int h,int startX, int startY, SDL_PixelFormat* fmt, Uint8 threshold, BoundingBox* box) {
     const int maxSize = w * h;
     Point* queue = malloc(sizeof(Point) * maxSize);
     int qStart = 0, qEnd = 0;
@@ -573,11 +549,18 @@ void floodFillIterative(Uint32* pixels, Uint8* visited, int w, int h,
     free(queue);
 }
 
-void extractLetters(const char* inputFile) {
+void extractLettersToFolder(const char* inputFile, const char* outputDir) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("SDL_Init Error: %s\n", SDL_GetError());
         return;
     }
+
+    if (MKDIR(outputDir) != 0 && errno != EEXIST) {
+        printf("Impossible de créer le dossier %s\n", outputDir);
+        SDL_Quit();
+        return;
+    }
+
 
     SDL_Surface* image = SDL_LoadBMP(inputFile);
     if (!image) {
@@ -638,14 +621,14 @@ void extractLetters(const char* inputFile) {
                 }
             }
 
-            char filename[64];
-            snprintf(filename, sizeof(filename), "letter_%03d.bmp", letterCount++);
+            char filename[512];
+            snprintf(filename, sizeof(filename), "%s/letter_%03d.bmp", outputDir, letterCount++);
             SDL_SaveBMP(letter, filename);
             SDL_FreeSurface(letter);
         }
     }
 
-    printf("Extracted %d letters.\n", letterCount);
+    printf("Extracted %d letters.\n", letterCount, outputDir);
 
     free(visited);
     SDL_UnlockSurface(image);

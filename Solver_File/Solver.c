@@ -505,7 +505,7 @@ int main(int argc, char* argv[]) {
 		errx(EXIT_FAILURE, "Pas bon nombre d'argument");
 
 	}
-	FILE* fichier = fopen("Grid.txt", "r");
+	FILE* fichier = fopen("Solver_File/Grid.txt", "r");
 
 	if (fichier == NULL) {
 		errx(EXIT_FAILURE, "Erreur lors de l'ouverture du fichier");

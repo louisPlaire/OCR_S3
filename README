@@ -1,0 +1,17 @@
+Le dossier du projet contient 3 sous-dossier : GTK_Interface_File (Pour le code du GTK), Neural_Network_File (Pour le code du réseau de neurone) et Solver_File (Pour le code du solver)
+
+Pour compiler : make all (compile tout), make clean (supprime les executable et -o)
+
+make Gtk : Compile le Gtk
+make solver : compile le solver
+make Reseau : compile le reseau de neurone
+
+
+./Gtk => Lance la fenetre, et pour faire apparaitre une image, rentrer GTK_Interface_File/Images/[Nom de l'image dans le dossier Images] puis cliquer sur executer.
+Bouton droite et gauche pour tourner a droite ou a gauche et bouton central pour appliquer la sauvegarde de chaque lettre en une image
+
+./solver [Mots] => lance le solver pour la liste de mots donner, et renvoie la position ou l'abscence de ceux ci dans la grille
+
+./Reseau Create => Crée un réseau de neurone vierge et le sauvegarde dans un fichier binaire
+./Reseau Train => Ouvre le fichier binaire, entraine notre réseau de neurone et le sauvegarde dans un fichier binaire
+./Reseau Execute val1 val2 => Ouvre le reseau de neurone et retourne la valeur du XNOR pour A = val1 et B = val2 
